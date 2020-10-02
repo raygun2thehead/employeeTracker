@@ -45,7 +45,7 @@ function runView() {
 }
 
 function depView() {
-    connection.query('SELECT * FROM department', function (error, results) {
+    connection.query('SELECT id AS ID, name AS Name FROM department', function (error, results) {
         if (error) throw error;
         console.table("Departments", results);
         inquirer.prompt({
@@ -91,7 +91,7 @@ function depView() {
 }
 
 function roleView() {
-    connection.query('SELECT role.id, role.title, role.salary, department.name FROM role JOIN department ON role.department_id = department.id', function (error, results) {
+    connection.query('SELECT role.id AS ID, role.title AS Title, role.salary AS Salary, department.name AS Department FROM role JOIN department ON role.department_id = department.id', function (error, results) {
         if (error) throw error;
         console.table("Roles", results);
         inquirer.prompt({
