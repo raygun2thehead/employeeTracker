@@ -43,7 +43,6 @@ function runView() {
             }
         });
 }
-
 function depView() {
     connection.query('SELECT id AS ID, name AS Name FROM department', function (error, results) {
         if (error) throw error;
@@ -68,28 +67,7 @@ function depView() {
             }
         })
     })
-    function addDep() {
-        inquirer
-            .prompt({
-                name: "addDep",
-                type: "input",
-                message: "Name of new department"
-            }).then(function (answer) {
-                connection.query(
-                    "INSERT INTO department SET ?",
-                    {
-                        name: answer.addDep
-                    },
-                    function (err, res) {
-                        if (err) throw err;
-                        console.log(res.affectedRows + " product inserted!\n");
-                        depView();
-                    }
-                )
-            })
-    }
 }
-
 function roleView() {
     connection.query('SELECT role.id AS ID, role.title AS Title, role.salary AS Salary, department.name AS Department FROM role JOIN department ON role.department_id = department.id', function (error, results) {
         if (error) throw error;
@@ -114,13 +92,63 @@ function roleView() {
             }
         })
     })
-    function addRole() {
-        var departArr = [];
-        connection.query('SELECT id, name FROM department', function (error, results) {
-            if (error) throw error;
-            for (i = 0; i < results.length; i++) {
-                departArr.push(results[i])
+}
+function empView() {
+    connection.query('SELECT employee.id AS ID, CONCAT(employee.first_name, " ", employee.last_name) AS Employee, role.salary AS Salary, role.title AS Position, department.name AS Department FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id', function (error, results) {
+        if (error) throw error;
+        console.table("All Employees", results);
+        inquirer.prompt({
+            name: "action",
+            type: "list",
+            message: "Make a selection",
+            choices: [
+                "View by Department",
+                "Add Employee",
+                "Exit"
+            ]
+        }).then(function (answer) {
+            switch (answer.action) {
+                case "View by Department":
+                    empDepView();
+                    break;
+                case "Add Employee":
+                    addEmp();
+                    break;
+                case "Exit":
+                    runView();
+                    break;
             }
+        })
+    })
+}
+function addDep() {
+    inquirer
+        .prompt({
+            name: "addDep",
+            type: "input",
+            message: "Name of new department"
+        }).then(function (answer) {
+            connection.query(
+                "INSERT INTO department SET ?",
+                {
+                    name: answer.addDep
+                },
+                function (err, res) {
+                    if (err) throw err;
+                    console.log(res.affectedRows + " product inserted!\n");
+                    depView();
+                }
+            )
+        })
+}
+function addRole() {
+    var departArr = [];
+    connection.query('SELECT id, name FROM department', function (error, results) {
+        if (error) throw error;
+        for (i = 0; i < results.length; i++) {
+            departArr.push(results[i])
+        }
+        // departArr.push("Add Department");
         inquirer
             .prompt([{
                 name: "addTitle",
@@ -137,14 +165,17 @@ function roleView() {
                 type: "list",
                 message: "Choose your department",
                 choices: departArr
-            }]).then(function (answer) {
+            },
+            ]).then(function (answer) {
+                // if (answer.depart === "Add Department") {
+                //     addDep()
+                // }
                 var departId;
                 results.forEach(el => {
                     if (el.name === answer.depart) {
                         departId = el.id;
                     }
                 })
-
                 connection.query(
                     "INSERT INTO role SET ?",
                     {
@@ -158,9 +189,8 @@ function roleView() {
                     }
                 )
             })
-        });
+    });
 
-    }
 }
 
 
