@@ -121,6 +121,34 @@ function empView() {
         })
     })
 }
+function empDepView() {
+    connection.query('SELECT employee.id AS ID, CONCAT(employee.first_name, " ", employee.last_name) AS Employee, role.salary AS Salary, role.title AS Position, department.name AS Department FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id', function (error, results) {
+        if (error) throw error;
+        console.table("All Employees", results);
+        inquirer.prompt({
+            name: "action",
+            type: "list",
+            message: "Make a selection",
+            choices: [
+                "View by Department",
+                "Add Employee",
+                "Exit"
+            ]
+        }).then(function (answer) {
+            switch (answer.action) {
+                case "View by Department":
+                    empView();
+                    break;
+                case "Add Employee":
+                    addEmp();
+                    break;
+                case "Exit":
+                    runView();
+                    break;
+            }
+        })
+    })
+}
 function addDep() {
     inquirer
         .prompt({
@@ -190,7 +218,56 @@ function addRole() {
                 )
             })
     });
-
+}
+function addEmp() {
+    var roleArr = [];
+    connection.query('SELECT id, title AS name FROM role', function (error, results) {
+        if (error) throw error;
+        for (i = 0; i < results.length; i++) {
+            roleArr.push(results[i])
+        }
+        // departArr.push("Add Department");
+        inquirer
+            .prompt([{
+                name: "firstName",
+                type: "input",
+                message: "First Name"
+            },
+            {
+                name: "lastName",
+                type: "input",
+                message: "Last Name"
+            },
+            {
+                name: "role",
+                type: "list",
+                message: "Choose Position",
+                choices: roleArr
+            }
+            ]).then(function (answer) {
+                // if (answer.depart === "Add Department") {
+                //     addDep()
+                // }
+                var roleId;
+                results.forEach(el => {
+                    if (el.name === answer.role) {
+                        roleId = el.id;
+                    }
+                })
+                connection.query(
+                    "INSERT INTO employee SET ?",
+                    {
+                        first_name: answer.firstName,
+                        last_name: answer.lastName,
+                        role_id: roleId
+                    },
+                    function (err, res) {
+                        if (err) throw err;
+                        empView();
+                    }
+                )
+            })
+    });
 }
 
 
